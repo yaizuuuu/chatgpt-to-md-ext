@@ -29,11 +29,14 @@ import TurndownService from "turndown";
         messages.push({ role: "user", html: userEl.innerHTML });
         return;
       }
-      const assistantEl = turn.querySelector(
+      const assistantEls = turn.querySelectorAll(
         ".font-claude-response .standard-markdown",
       );
-      if (assistantEl) {
-        messages.push({ role: "assistant", html: assistantEl.innerHTML });
+      if (assistantEls.length > 0) {
+        const html = Array.from(assistantEls)
+          .map((el) => el.innerHTML)
+          .join("");
+        messages.push({ role: "assistant", html });
       }
     });
     return messages;
