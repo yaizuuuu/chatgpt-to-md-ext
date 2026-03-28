@@ -1,7 +1,18 @@
 import TurndownService from "turndown";
 
 (() => {
-  const service = new TurndownService();
+  const service = new TurndownService({
+    hr: '---',
+    codeBlockStyle: 'fenced',
+    preformattedCode: true,
+  });
+
+  service.addRule("trim-li-space", {
+    filter: ["li"],
+    replacement: function (content) {
+      return "- " + content.trim();
+    },
+  });
 
   function getChatContainer(): string | undefined {
     const host = window.location.hostname;
