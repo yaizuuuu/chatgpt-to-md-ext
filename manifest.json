@@ -1,26 +1,26 @@
 {
   "manifest_version": 3,
-  "name": "ChatGPT to Markdown",
+  "name": "GenAI Chat to Markdown",
   "version": "1.0.0",
-  "description": "Convert ChatGPT HTML to Markdown via context menu",
+  "description": "Convert GenAI chat HTML to Markdown via context menu",
   "icons": {
-    "16": "chatgpt-to-md.png",
-    "32": "chatgpt-to-md.png",
-    "48": "chatgpt-to-md.png",
-    "128": "chatgpt-to-md.png"
+    "16": "genai-chat-to-md.png",
+    "32": "genai-chat-to-md.png",
+    "48": "genai-chat-to-md.png",
+    "128": "genai-chat-to-md.png"
   },
   "permissions": ["contextMenus", "scripting", "activeTab"],
   "background": {
     "service_worker": "dist/background.js",
     "type": "module"
   },
-  "host_permissions": ["https://chatgpt.com/*"],
+  "host_permissions": ["https://chatgpt.com/*", "https://claude.ai/*"],
   "action": {
     "default_icon": {
-      "16": "chatgpt-to-md.png",
-      "32": "chatgpt-to-md.png",
-      "48": "chatgpt-to-md.png",
-      "128": "chatgpt-to-md.png"
+      "16": "genai-chat-to-md.png",
+      "32": "genai-chat-to-md.png",
+      "48": "genai-chat-to-md.png",
+      "128": "genai-chat-to-md.png"
     },
     "default_title": "Chat to Markdown"
   }

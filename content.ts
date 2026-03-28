@@ -3,7 +3,21 @@ import TurndownService from "turndown";
 (() => {
   const service = new TurndownService();
 
-  const chat = document.getElementById("main")?.outerHTML;
+  function getChatContainer(): string | undefined {
+    const host = window.location.hostname;
+
+    if (host === "chatgpt.com") {
+      return document.getElementById("main")?.outerHTML;
+    }
+
+    if (host === "claude.ai") {
+      return document.getElementById("main-content")?.outerHTML;
+    }
+
+    return undefined;
+  }
+
+  const chat = getChatContainer();
 
   if (!chat) return "nothing";
 

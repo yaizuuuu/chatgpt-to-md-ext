@@ -1,13 +1,13 @@
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
-    id: "chatgptToMarkdown",
+    id: "genaiChatToMarkdown",
     title: "Convert chat to Markdown",
     contexts: ["page"],
   });
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === "chatgptToMarkdown") {
+  if (info.menuItemId === "genaiChatToMarkdown") {
     if (!tab?.id) return;
 
     chrome.scripting.executeScript(
