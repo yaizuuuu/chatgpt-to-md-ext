@@ -9,7 +9,7 @@
     "48": "genai-chat-to-md.png",
     "128": "genai-chat-to-md.png"
   },
-  "permissions": ["contextMenus", "scripting", "activeTab"],
+  "permissions": ["contextMenus", "scripting", "activeTab", "downloads"],
   "background": {
     "service_worker": "dist/background.js",
     "type": "module"

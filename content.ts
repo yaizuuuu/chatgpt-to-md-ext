@@ -1,6 +1,7 @@
 import TurndownService from "turndown";
+import type { ImageEntry, SaveChatWithImagesMessage } from "./types";
 
-(() => {
+(async () => {
   const service = new TurndownService({
     hr: "---",
     codeBlockStyle: "fenced",
@@ -49,37 +50,6 @@ import TurndownService from "turndown";
       const langEl = node.querySelector(".text-token-text-primary");
       let language = "";
       if (langEl) {
-        // Codex解説:
-        //
-        // childNodes には、その要素の直下にある「ノード」が全部入ります。
-        // children と違って、テキストノードやコメントノードも含むのがポイントです。
-        //
-        // 具体例
-        // たとえばこのHTMLがあるとします。
-        //
-        // <div id="sample">
-        //   Hello
-        //   <span>World</span>
-        //   <!-- comment -->
-        // </div>
-        // #sample.childNodes には、だいたいこんなものが入ります。
-        //
-        // #text ノード
-        //
-        // 改行やインデントの空白
-        // " Hello\n " みたいな文字列
-        // span 要素ノード
-        //
-        // <span>World</span>
-        // #text ノード
-        //
-        // "\n " みたいな空白
-        // #comment ノード
-        //
-        // <!-- comment -->
-        // #text ノード
-        //
-        // 改行や閉じタグ前の空白
         language = Array.from(langEl.childNodes)
           .filter((child) => child.nodeType === Node.TEXT_NODE)
           .map((child) => child.textContent?.trim() ?? "")
@@ -100,10 +70,6 @@ import TurndownService from "turndown";
       }
       code = code.replace(/\n$/, "");
 
-      // codex解説:
-      // code の中に ``` や ```` のような連続バッククォートがあれば拾います。
-      // もしコード内に ``` があるのに、外側も ``` だと、Markdown の囲みが途中で終わってしまいます。
-      // それを防ぐために、コード内で見つかったバッククォート列より 1文字多い fence を使います。
       let fenceSize = 3;
       const fenceRegex = /^`{3,}/gm;
       let match;
@@ -127,8 +93,6 @@ import TurndownService from "turndown";
 
   type Message = { role: "user" | "assistant"; html: string };
 
-  // チャット全体は以下の要素のHTMLから取得できる
-  // document.getElementById("main-content").outerHTML;
   function getClaudeMessages(): Message[] {
     const messages: Message[] = [];
     const turns = document.querySelectorAll(
@@ -140,7 +104,6 @@ import TurndownService from "turndown";
         messages.push({ role: "user", html: userEl.innerHTML });
         return;
       }
-      // claudeがtools等を使うと1回のreplyに複数のdivが使われることがあるため、ここはquerySelectorAllとなる
       const assistantEls = turn.querySelectorAll(
         ".font-claude-response .standard-markdown",
       );
@@ -154,8 +117,6 @@ import TurndownService from "turndown";
     return messages;
   }
 
-  // チャット全体は以下の要素のHTMLから取得できる
-  // document.getElementById("main").outerHTML;
   function getChatGPTMessages(): Message[] {
     const messages: Message[] = [];
     const turns = document.querySelectorAll("#main section[data-turn]");
@@ -176,6 +137,224 @@ import TurndownService from "turndown";
     return [];
   }
 
+  // ---- 画像収集 ----
+
+  function isUiIcon(img: HTMLImageElement): boolean {
+    // aria-hidden な画像はUIアイコン
+    if (img.getAttribute("aria-hidden") === "true") return true;
+    // button の中の画像はUIアイコン
+    if (img.closest("button")) return true;
+    // 24px以下の小さな画像はアイコン扱い
+    const rect = img.getBoundingClientRect();
+    if (rect.width > 0 && rect.width <= 24 && rect.height <= 24) return true;
+    if (
+      img.naturalWidth > 0 &&
+      img.naturalWidth <= 24 &&
+      img.naturalHeight <= 24
+    )
+      return true;
+    return false;
+  }
+
+  function mimeToExtension(mime: string): string {
+    const map: Record<string, string> = {
+      "image/png": "png",
+      "image/jpeg": "jpg",
+      "image/gif": "gif",
+      "image/webp": "webp",
+      "image/svg+xml": "svg",
+      "image/bmp": "bmp",
+    };
+    return map[mime] ?? "png";
+  }
+
+  function mimeFromDataUrl(dataUrl: string): string {
+    const m = dataUrl.match(/^data:([^;,]+)/);
+    return m ? m[1] : "image/png";
+  }
+
+  async function blobToDataUrl(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function extractImageDataUrl(
+    img: HTMLImageElement,
+  ): Promise<string | null> {
+    const src = img.getAttribute("src") || "";
+
+    // data URL はそのまま返す
+    if (src.startsWith("data:")) return src;
+
+    // blob: / https: は fetch で取得
+    if (src.startsWith("blob:") || src.startsWith("https://") || src.startsWith("http://")) {
+      try {
+        const resp = await fetch(src, { mode: "cors" });
+        const blob = await resp.blob();
+        return await blobToDataUrl(blob);
+      } catch {
+        // CORS失敗時はcanvas経由で試みる
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth || img.width || 1;
+          canvas.height = img.naturalHeight || img.height || 1;
+          canvas.getContext("2d")?.drawImage(img, 0, 0);
+          return canvas.toDataURL();
+        } catch {
+          // 取得できなかった場合は元のURLを返す（Markdownには元URLを残す）
+          return null;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  type CollectedImage = {
+    originalSrc: string;
+    dataUrl: string;
+    filename: string;
+  };
+
+  async function collectImages(): Promise<{
+    entries: ImageEntry[];
+    srcToRelPath: Map<string, string>;
+    canvasToRelPath: Map<HTMLCanvasElement, string>;
+  }> {
+    const host = window.location.hostname;
+    let imgSelectors: string[];
+    let canvasSelectors: string[];
+
+    if (host === "claude.ai") {
+      imgSelectors = [
+        "#main-content [data-test-render-count] [data-testid='user-message'] img",
+        "#main-content [data-test-render-count] .font-claude-response img",
+      ];
+      canvasSelectors = [
+        "#main-content [data-test-render-count] [data-testid='user-message'] canvas",
+        "#main-content [data-test-render-count] .font-claude-response canvas",
+      ];
+    } else {
+      // chatgpt.com
+      imgSelectors = [
+        "#main section[data-turn] [data-message-author-role] img",
+      ];
+      canvasSelectors = [
+        "#main section[data-turn] [data-message-author-role] canvas",
+      ];
+    }
+
+    const srcToRelPath = new Map<string, string>();
+    const canvasToRelPath = new Map<HTMLCanvasElement, string>();
+    const collected: CollectedImage[] = [];
+    let counter = 1;
+
+    // <img> 収集
+    const seenSrcs = new Set<string>();
+    for (const selector of imgSelectors) {
+      const imgs = document.querySelectorAll<HTMLImageElement>(selector);
+      for (const img of Array.from(imgs)) {
+        if (isUiIcon(img)) continue;
+        const src = img.getAttribute("src") || "";
+        if (!src) continue;
+        if (seenSrcs.has(src)) continue;
+        seenSrcs.add(src);
+
+        const dataUrl = await extractImageDataUrl(img);
+        if (!dataUrl) {
+          // 取得できなかった場合は元URLをそのまま使う
+          srcToRelPath.set(src, src);
+          continue;
+        }
+
+        const mime = mimeFromDataUrl(dataUrl);
+        const ext = mimeToExtension(mime);
+        const filename = `image-${String(counter).padStart(3, "0")}.${ext}`;
+        counter++;
+
+        collected.push({ originalSrc: src, dataUrl, filename });
+        srcToRelPath.set(src, `images/${filename}`);
+      }
+    }
+
+    // <canvas> 収集
+    for (const selector of canvasSelectors) {
+      const canvases = document.querySelectorAll<HTMLCanvasElement>(selector);
+      for (const canvas of Array.from(canvases)) {
+        try {
+          const dataUrl = canvas.toDataURL("image/png");
+          const filename = `image-${String(counter).padStart(3, "0")}.png`;
+          counter++;
+          collected.push({ originalSrc: "", dataUrl, filename });
+          canvasToRelPath.set(canvas, `images/${filename}`);
+        } catch {
+          // tainted canvas は無視
+        }
+      }
+    }
+
+    const entries: ImageEntry[] = collected.map(({ dataUrl, filename }) => ({
+      dataUrl,
+      filename,
+    }));
+
+    return { entries, srcToRelPath, canvasToRelPath };
+  }
+
+  // ---- exportMode判定 ----
+  const exportMode =
+    (window as unknown as Record<string, unknown>)["__exportMode"];
+  const withImages = exportMode === "withImages";
+
+  // exportMode フラグをリセット（二重実行対策）
+  if (withImages) {
+    (window as unknown as Record<string, unknown>)["__exportMode"] = undefined;
+  }
+
+  // ---- 画像ルールをTurndownServiceに追加（withImages時のみ有効化） ----
+  let srcToRelPath = new Map<string, string>();
+  let canvasToRelPath = new Map<HTMLCanvasElement, string>();
+  let imageEntries: ImageEntry[] = [];
+
+  if (withImages) {
+    const result = await collectImages();
+    srcToRelPath = result.srcToRelPath;
+    canvasToRelPath = result.canvasToRelPath;
+    imageEntries = result.entries;
+  }
+
+  service.addRule("extract-image", {
+    filter: "img",
+    replacement: function (_content: string, node: HTMLElement) {
+      const img = node as HTMLImageElement;
+      const src = img.getAttribute("src") || "";
+      if (!withImages) {
+        // 通常モードはデフォルト動作（alt + src そのまま）
+        const alt = img.getAttribute("alt") || "";
+        return `![${alt}](${src})`;
+      }
+      const relPath = srcToRelPath.get(src);
+      if (!relPath) return ""; // UIアイコン等（収集対象外）
+      const alt = img.getAttribute("alt") || "";
+      return `![${alt}](${relPath})`;
+    },
+  });
+
+  service.addRule("canvas-image", {
+    filter: "canvas",
+    replacement: function (_content: string, node: HTMLElement) {
+      if (!withImages) return "";
+      const relPath = canvasToRelPath.get(node as HTMLCanvasElement);
+      if (!relPath) return "";
+      return `![canvas](${relPath})`;
+    },
+  });
+
+  // ---- メッセージ取得・Markdown変換 ----
   const messages = getMessages();
 
   if (messages.length === 0) return "nothing";
@@ -188,7 +367,21 @@ import TurndownService from "turndown";
 
   const markdown = parts.join("\n\n");
 
-  navigator.clipboard.writeText(markdown).then(() => alert("コピー成功👍"));
+  await navigator.clipboard.writeText(markdown);
+
+  if (withImages) {
+    const chatTitle = document.title || "chat";
+    const msg: SaveChatWithImagesMessage = {
+      type: "SAVE_CHAT_WITH_IMAGES",
+      markdown,
+      images: imageEntries,
+      chatTitle,
+    };
+    chrome.runtime.sendMessage(msg);
+    alert(`コピー成功👍\n画像${imageEntries.length}枚をダウンロードフォルダに保存します`);
+  } else {
+    alert("コピー成功👍");
+  }
 
   console.log(markdown);
 
