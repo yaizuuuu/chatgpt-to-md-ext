@@ -93,17 +93,12 @@ export function addImageRules(
   service: TurndownService,
   srcToRelPath: SrcToRelPath,
   canvasToRelPath: CanvasToRelPath,
-  withImages: boolean,
 ): void {
   service.addRule("extract-image", {
     filter: "img",
     replacement: function (_content: string, node: HTMLElement) {
       const img = node as HTMLImageElement;
       const src = img.getAttribute("src") || "";
-      if (!withImages) {
-        const alt = img.getAttribute("alt") || "";
-        return `![${alt}](${src})`;
-      }
       const relPath = srcToRelPath.get(src);
       if (!relPath) return "";
       const alt = img.getAttribute("alt") || "";
@@ -114,7 +109,6 @@ export function addImageRules(
   service.addRule("canvas-image", {
     filter: "canvas",
     replacement: function (_content: string, node: HTMLElement) {
-      if (!withImages) return "";
       const relPath = canvasToRelPath.get(node as HTMLCanvasElement);
       if (!relPath) return "";
       return `![canvas](${relPath})`;

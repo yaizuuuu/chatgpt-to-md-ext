@@ -19,13 +19,13 @@ npm run watch   # 同上のwatch mode
 
 エントリポイントは2ファイル。共有型定義と実装モジュールは `src/` に分離：
 
-- **`background.ts`** — Service Worker。コンテキストメニュー登録・クリックハンドラ・メッセージリスナーのみ。
-- **`content.ts`** — ページ上で実行されるコンテンツスクリプト（IIFE）。オーケストレーションのみ（各モジュールを呼び出す）。
-- **`types.ts`** — 共有型定義（`ImageEntry`, `SaveChatWithImagesMessage`, `Message`, `CollectedImage`）。
-- **`src/turndown-rules.ts`** — TurndownService生成（`createTurndownService`）と画像ルール追加（`addImageRules`）。
-- **`src/messages.ts`** — サイト別DOM抽出（`getMessages`, `getClaudeMessages`, `getChatGPTMessages`）。
-- **`src/images.ts`** — 画像収集ユーティリティ（`collectImages` とヘルパー関数群）。
-- **`src/download.ts`** — background側ダウンロードヘルパー（`handleSaveWithImages`, `downloadFile`, `sanitizeFolderName`）。
+- **`background.ts`** — Service Worker。コンテキストメニュー登録・クリックハンドラ・メッセージリスナーのみ
+- **`content.ts`** — ページ上で実行されるコンテンツスクリプト（IIFE）。オーケストレーションのみ（各モジュールを呼び出す）
+- **`constants.ts`** — 複数ファイルから参照される定数群
+- **`src/turndown-rules.ts`** — TurndownService生成（`createTurndownService`）と画像ルール追加（`addImageRules`）
+- **`src/messages.ts`** — サイト別DOM抽出（`getMessages`, `getClaudeMessages`, `getChatGPTMessages`）
+- **`src/images.ts`** — 画像収集ユーティリティ（`collectImages` とヘルパー関数群）
+- **`src/download.ts`** — background側ダウンロードヘルパー（`handleSaveWithImages`, `downloadFile`, `sanitizeFolderName`）
 
 esbuildがビルド時に `src/` モジュールを各エントリポイントへバンドルする。
 

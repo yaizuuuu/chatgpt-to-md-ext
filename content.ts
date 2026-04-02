@@ -18,7 +18,7 @@ import { SaveChatWithImagesMessage } from "./src/download";
 
     // 画像収集（withImages時のみ）
     collected = await collectImages();
-    addImageRules(service, collected.srcToRelPath, collected.canvasToRelPath, withImages);
+    addImageRules(service, collected.srcToRelPath, collected.canvasToRelPath);
   }
 
   // メッセージ取得・Markdown変換
@@ -29,8 +29,8 @@ import { SaveChatWithImagesMessage } from "./src/download";
   const parts = messages.map(({ role, html }) => {
     const label =
       role === ROLE.USER
-        ? `## ${ROLE_ICON.USER} ${ROLE.USER.charAt(0).toUpperCase()}${ROLE.USER.slice(1)}`
-        : `## ${ROLE_ICON.ASSISTANT} ${ROLE.ASSISTANT.charAt(0).toUpperCase()}${ROLE.ASSISTANT.slice(1)}`;
+        ? `## ${ROLE_ICON.USER} ${ROLE.USER}`
+        : `## ${ROLE_ICON.ASSISTANT} ${ROLE.ASSISTANT}`;
     const md = service.turndown(html);
     return `${label}\n\n${md}`;
   });
