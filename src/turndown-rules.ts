@@ -22,9 +22,7 @@ export function createTurndownService(): TurndownService {
       if (trEls.length === 0) return _content;
 
       const rows = trEls.map((tr) =>
-        Array.from(tr.querySelectorAll("th, td")).map(
-          (cell) => cell.textContent?.trim().replace(/\|/g, "\\|") ?? "",
-        ),
+        Array.from(tr.querySelectorAll("th, td")).map((cell) => cell.textContent?.trim().replace(/\|/g, "\\|") ?? ""),
       );
 
       const firstTr = node.querySelector("tr");
@@ -40,7 +38,6 @@ export function createTurndownService(): TurndownService {
     },
   });
 
-
   service.addRule("remove-unnecessary-whitespace-in-li", {
     filter: ["li"],
     replacement: function (content) {
@@ -50,10 +47,7 @@ export function createTurndownService(): TurndownService {
 
   service.addRule("chatgpt-code-block", {
     filter: function (node: HTMLElement) {
-      return (
-        node.nodeName === "PRE" &&
-        node.querySelector(DOM_SELECTOR_CHATGPT_CODE_BLOCK_CONTENT) !== null
-      );
+      return node.nodeName === "PRE" && node.querySelector(DOM_SELECTOR_CHATGPT_CODE_BLOCK_CONTENT) !== null;
     },
     replacement: function (_content: string, node: HTMLElement) {
       const langEl = node.querySelector(DOM_SELECTOR_CHATGPT_CODE_BLOCK_LANG);
@@ -88,16 +82,7 @@ export function createTurndownService(): TurndownService {
       }
       const fence = "`".repeat(fenceSize);
 
-      return (
-        "\n\n" +
-        fence +
-        language +
-        "\n" +
-        code +
-        "\n" +
-        fence +
-        "\n\n"
-      );
+      return "\n\n" + fence + language + "\n" + code + "\n" + fence + "\n\n";
     },
   });
 
@@ -106,8 +91,8 @@ export function createTurndownService(): TurndownService {
 
 export function addImageRules(
   service: TurndownService,
-    srcToRelPath: SrcToRelPath,
-    canvasToRelPath: CanvasToRelPath,
+  srcToRelPath: SrcToRelPath,
+  canvasToRelPath: CanvasToRelPath,
   withImages: boolean,
 ): void {
   service.addRule("extract-image", {

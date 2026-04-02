@@ -44,7 +44,7 @@ const DOM_SELECTOR_CLAUDE_CANVASES = [
 const DOM_SELECTOR_CHATGPT_IMGS = ["#main section[data-turn] [data-message-author-role] img"];
 const DOM_SELECTOR_CHATGPT_CANVASES = ["#main section[data-turn] [data-message-author-role] canvas"];
 
-type collectedImage = {
+type CollectedImage = {
   originalSrc: string;
   dataUrl: string;
   filename: string;
@@ -79,7 +79,7 @@ function isUiIcon(img: HTMLImageElement): boolean {
 }
 
 function mimeToExtension(mime: string): string {
-  return mime_to_ext_map[mime] ?? MIMES.PNG;
+  return mime_to_ext_map[mime] ?? EXTS.PNG;
 }
 
 function mimeFromDataUrl(dataUrl: string): string {
@@ -140,7 +140,7 @@ export async function collectImages(): Promise<CollectImages> {
 
   const srcToRelPath: SrcToRelPath = new Map<string, string>();
   const canvasToRelPath: CanvasToRelPath = new Map<HTMLCanvasElement, string>();
-  const collected: collectedImage[] = [];
+  const collected: CollectedImage[] = [];
   let counter = 1;
 
   const seenSrcs = new Set<string>();

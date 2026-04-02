@@ -1,7 +1,7 @@
 import { createTurndownService, addImageRules } from "./src/turndown-rules";
 import { getMessages } from "./src/messages";
 import { collectImages, CollectImages, ImageEntry } from "./src/images";
-import { ROLE } from "./src/constants";
+import { ROLE, ROLE_ICON } from "./src/constants";
 import { SaveChatWithImagesMessage } from "./src/download";
 
 (async () => {
@@ -29,8 +29,8 @@ import { SaveChatWithImagesMessage } from "./src/download";
   const parts = messages.map(({ role, html }) => {
     const label =
       role === ROLE.USER
-        ? `## ${ROLE.USER_ICON} ${ROLE.USER.charAt(0).toUpperCase()}${ROLE.USER.slice(1)}`
-        : `## ${ROLE.ASSISTANT_ICON} ${ROLE.ASSISTANT.charAt(0).toUpperCase()}${ROLE.ASSISTANT.slice(1)}`;
+        ? `## ${ROLE_ICON.USER} ${ROLE.USER.charAt(0).toUpperCase()}${ROLE.USER.slice(1)}`
+        : `## ${ROLE_ICON.ASSISTANT} ${ROLE.ASSISTANT.charAt(0).toUpperCase()}${ROLE.ASSISTANT.slice(1)}`;
     const md = service.turndown(html);
     return `${label}\n\n${md}`;
   });

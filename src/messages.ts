@@ -1,8 +1,4 @@
-import {
-  ROLE,
-  HOSTNAME_CHATGPT,
-  HOSTNAME_CLAUDE,
-} from "./constants";
+import { ROLE, HOSTNAME_CHATGPT, HOSTNAME_CLAUDE } from "./constants";
 
 // chatgpt
 const DOM_SELECTOR_CHATGPT_TURNS = "#main section[data-turn]";
