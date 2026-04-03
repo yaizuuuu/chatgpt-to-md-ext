@@ -18,7 +18,7 @@ export async function handleSaveWithImages(message: SaveChatWithImagesMessage): 
   const bytes = new TextEncoder().encode(message.markdown);
   let binary = "";
   for (const b of bytes) binary += String.fromCharCode(b);
-  const mdDataUrl = "data:text/markdown;base64," + btoa(binary);
+  const mdDataUrl = `data:text/markdown;base64,${btoa(binary)}`;
 
   await downloadFile(mdDataUrl, `${baseDir}/chat.md`);
 }
