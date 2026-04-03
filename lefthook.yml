@@ -1,8 +1,5 @@
-# EXAMPLE USAGE:
-#
-#   Refer for explanation to following link:
-#   https://lefthook.dev/configuration/
-
+# Refer for explanation to following link:
+# https://lefthook.dev/configuration/
 pre-push:
   jobs:
     - name: packages audit
@@ -14,10 +11,6 @@ pre-push:
       tags:
         - frontend
       run: npx biome check .
-    - name: lefthook
-      tags:
-        - frontend
-      run: npx lefthook install
 
 pre-commit:
   parallel: true  
