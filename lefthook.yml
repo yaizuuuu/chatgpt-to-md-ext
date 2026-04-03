@@ -10,6 +10,14 @@ pre-push:
         - frontend
         - security
       run: npm audit
+    - name: biome
+      tags:
+        - frontend
+      run: npx biome check .
+    - name: lefthook
+      tags:
+        - frontend
+      run: npx lefthook install
 
 pre-commit:
   parallel: true  

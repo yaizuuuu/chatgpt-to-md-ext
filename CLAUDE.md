@@ -21,7 +21,7 @@ npm run watch   # 同上のwatch mode
 
 - **`background.ts`** — Service Worker。コンテキストメニュー登録・クリックハンドラ・メッセージリスナーのみ
 - **`content.ts`** — ページ上で実行されるコンテンツスクリプト（IIFE）。オーケストレーションのみ（各モジュールを呼び出す）
-- **`constants.ts`** — 複数ファイルから参照される定数群
+- **`src/constants.ts`** — 複数ファイルから参照される定数群
 - **`src/turndown-rules.ts`** — TurndownService生成（`createTurndownService`）と画像ルール追加（`addImageRules`）
 - **`src/messages.ts`** — サイト別DOM抽出（`getMessages`, `getClaudeMessages`, `getChatGPTMessages`）
 - **`src/images.ts`** — 画像収集ユーティリティ（`collectImages` とヘルパー関数群）
