@@ -25,8 +25,7 @@ export function createTurndownService(): TurndownService {
         Array.from(tr.querySelectorAll("th, td")).map((cell) => cell.textContent?.trim().replace(/\|/g, "\\|") ?? ""),
       );
 
-      const firstTr = node.querySelector("tr");
-      const hasHeader = firstTr ? firstTr.querySelector("th") !== null : false;
+      const hasHeader = trEls[0].querySelector("th") !== null;
 
       const headerRow = rows[0];
       const dataRows = hasHeader ? rows.slice(1) : rows;

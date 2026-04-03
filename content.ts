@@ -1,4 +1,4 @@
-import { ROLE, ROLE_ICON } from "./src/constants";
+import { EXPORT_MODE, MESSAGE_TYPE, ROLE, ROLE_ICON } from "./src/constants";
 import type { SaveChatWithImagesMessage } from "./src/download";
 import { type CollectImages, collectImages } from "./src/images";
 import { getMessages } from "./src/messages";
@@ -7,21 +7,18 @@ import { addImageRules, createTurndownService } from "./src/turndown-rules";
 (async () => {
   const service = createTurndownService();
 
-  // exportMode判定
   const exportMode = (window as unknown as Record<string, unknown>).__exportMode;
-  const withImages = exportMode === "withImages";
+  const withImages = exportMode === EXPORT_MODE.WITH_IMAGES;
 
   let collected: CollectImages | undefined;
   if (withImages) {
-    // exportModeフラグをリセット（二重実行対策）
+    // 二重実行対策
     (window as unknown as Record<string, unknown>).__exportMode = undefined;
 
-    // 画像収集（withImages時のみ）
     collected = await collectImages();
     addImageRules(service, collected.srcToRelPath, collected.canvasToRelPath);
   }
 
-  // メッセージ取得・Markdown変換
   const messages = getMessages();
 
   if (messages.length === 0) return "nothing";
@@ -40,7 +37,7 @@ import { addImageRules, createTurndownService } from "./src/turndown-rules";
   if (withImages && collected) {
     const chatTitle = document.title || "chat";
     const msg: SaveChatWithImagesMessage = {
-      type: "SAVE_CHAT_WITH_IMAGES",
+      type: MESSAGE_TYPE.SAVE_CHAT_WITH_IMAGES,
       markdown,
       images: collected.entries,
       chatTitle,

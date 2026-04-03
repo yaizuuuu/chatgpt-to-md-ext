@@ -1,11 +1,9 @@
 import { HOSTNAME_CHATGPT, HOSTNAME_CLAUDE, ROLE } from "./constants";
 
-// chatgpt
 const DOM_SELECTOR_CHATGPT_TURNS = "#main section[data-turn]";
 const DOM_ATTR_CHATGPT_ROLE = "data-turn";
 const DOM_SELECTOR_CHATGPT_TURN_CONTENT = "[data-message-author-role]";
 
-// claude
 const DOM_SELECTOR_CLAUDE_TURNS = "#main-content [data-test-render-count]";
 const DOM_SELECTOR_CLAUDE_USER_TURN = "[data-testid='user-message']";
 const DOM_SELECTOR_CLAUDE_ASSISTANT_TURN = ".font-claude-response .standard-markdown";

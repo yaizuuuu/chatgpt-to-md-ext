@@ -1,7 +1,8 @@
+import type { MESSAGE_TYPE } from "./constants";
 import type { ImageEntry } from "./images";
 
 export type SaveChatWithImagesMessage = {
-  type: "SAVE_CHAT_WITH_IMAGES";
+  type: typeof MESSAGE_TYPE.SAVE_CHAT_WITH_IMAGES;
   markdown: string;
   images: ImageEntry[];
   chatTitle: string;
@@ -11,9 +12,7 @@ export async function handleSaveWithImages(message: SaveChatWithImagesMessage): 
   const folderName = sanitizeFolderName(message.chatTitle);
   const baseDir = `GenAI-Chat-Export/${folderName}`;
 
-  for (const img of message.images) {
-    await downloadFile(img.dataUrl, `${baseDir}/images/${img.filename}`);
-  }
+  await Promise.all(message.images.map((img) => downloadFile(img.dataUrl, `${baseDir}/images/${img.filename}`)));
 
   const bytes = new TextEncoder().encode(message.markdown);
   let binary = "";

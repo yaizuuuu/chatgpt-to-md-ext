@@ -1,3 +1,4 @@
+import { MESSAGE_TYPE } from "./src/constants";
 import { handleSaveWithImages, type SaveChatWithImagesMessage } from "./src/download";
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -51,7 +52,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 });
 
 chrome.runtime.onMessage.addListener((message: SaveChatWithImagesMessage, _sender, sendResponse) => {
-  if (message.type !== "SAVE_CHAT_WITH_IMAGES") return false;
+  if (message.type !== MESSAGE_TYPE.SAVE_CHAT_WITH_IMAGES) return false;
 
   handleSaveWithImages(message).then(() => sendResponse({ ok: true }));
   return true; // keep channel open for async response
