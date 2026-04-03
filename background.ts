@@ -1,4 +1,4 @@
-import { handleSaveWithImages, SaveChatWithImagesMessage } from "./src/download";
+import { handleSaveWithImages, type SaveChatWithImagesMessage } from "./src/download";
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
@@ -36,7 +36,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         target: { tabId: tab.id },
         // TODO: argsを使ったやり方に変更
         func: () => {
-          (window as unknown as Record<string, unknown>)["__exportMode"] = "withImages";
+          (window as unknown as Record<string, unknown>).__exportMode = "withImages";
         },
       },
       () => {

@@ -27,7 +27,9 @@ npm run build
 ## 開発
 
 ```bash
-npm run watch   # ファイル変更時に自動ビルド
+npm run watch     # ファイル変更時に自動ビルド
+npm run check     # format & lintに準拠しているか確認
+npm run check:fix # format & lintに準拠するように修正
 ```
 
 ビルド後、Chrome の拡張機能ページでリロードボタンを押すと変更が反映されます。

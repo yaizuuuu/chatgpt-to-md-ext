@@ -1,20 +1,20 @@
-import { createTurndownService, addImageRules } from "./src/turndown-rules";
-import { getMessages } from "./src/messages";
-import { collectImages, CollectImages, ImageEntry } from "./src/images";
 import { ROLE, ROLE_ICON } from "./src/constants";
-import { SaveChatWithImagesMessage } from "./src/download";
+import type { SaveChatWithImagesMessage } from "./src/download";
+import { type CollectImages, collectImages } from "./src/images";
+import { getMessages } from "./src/messages";
+import { addImageRules, createTurndownService } from "./src/turndown-rules";
 
 (async () => {
   const service = createTurndownService();
 
   // exportMode判定
-  const exportMode = (window as unknown as Record<string, unknown>)["__exportMode"];
+  const exportMode = (window as unknown as Record<string, unknown>).__exportMode;
   const withImages = exportMode === "withImages";
 
   let collected: CollectImages | undefined;
   if (withImages) {
     // exportModeフラグをリセット（二重実行対策）
-    (window as unknown as Record<string, unknown>)["__exportMode"] = undefined;
+    (window as unknown as Record<string, unknown>).__exportMode = undefined;
 
     // 画像収集（withImages時のみ）
     collected = await collectImages();
@@ -28,9 +28,7 @@ import { SaveChatWithImagesMessage } from "./src/download";
 
   const parts = messages.map(({ role, html }) => {
     const label =
-      role === ROLE.USER
-        ? `## ${ROLE_ICON.USER} ${ROLE.USER}`
-        : `## ${ROLE_ICON.ASSISTANT} ${ROLE.ASSISTANT}`;
+      role === ROLE.USER ? `## ${ROLE_ICON.USER} ${ROLE.USER}` : `## ${ROLE_ICON.ASSISTANT} ${ROLE.ASSISTANT}`;
     const md = service.turndown(html);
     return `${label}\n\n${md}`;
   });

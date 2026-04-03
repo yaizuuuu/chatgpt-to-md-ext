@@ -1,0 +1,21 @@
+# Refer for explanation to following link:
+# https://lefthook.dev/configuration/
+pre-push:
+  jobs:
+    - name: packages audit
+      tags:
+        - frontend
+        - security
+      run: npm audit
+    - name: biome
+      tags:
+        - frontend
+      run: npx biome check .
+
+pre-commit:
+  parallel: true  
+  commands:
+    biome:
+      glob: "*.{js,ts,jsx,tsx,json}"
+      run: npx biome check --write --unsafe {staged_files}
+      stage_fixed: true  # 自動修正したファイルをgit addし直す
