@@ -1,36 +1,17 @@
 import { HOSTNAME_CHATGPT, HOSTNAME_CLAUDE } from "./constants";
 
-const MIMES = {
-  PNG: "image/png",
-  JPEG: "image/jpeg",
-  GIF: "image/gif",
-  WEBP: "image/webp",
-  SVG: "image/svg+xml",
-  BMP: "image/bmp",
-};
-
-const EXTS = {
-  PNG: "png",
-  JPEG: "jpeg",
-  GIF: "gif",
-  WEBP: "webp",
-  SVG: "svg",
-  BMP: "bmp",
-};
-
-const mime_to_ext_map: Record<string, string> = {
-  [MIMES.PNG]: EXTS.PNG,
-  [MIMES.JPEG]: EXTS.JPEG,
-  [MIMES.GIF]: EXTS.GIF,
-  [MIMES.WEBP]: EXTS.WEBP,
-  [MIMES.SVG]: EXTS.SVG,
-  [MIMES.BMP]: EXTS.BMP,
+const MIME_TO_EXT: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpeg",
+  "image/gif": "gif",
+  "image/webp": "webp",
+  "image/svg+xml": "svg",
+  "image/bmp": "bmp",
 };
 
 const IMAGE_FILE_PREFIX = "image";
 const IMAGE_FILE_PATH = "images";
 
-// claude
 const DOM_SELECTOR_CLAUDE_IMGS = [
   "#main-content [data-test-render-count] [data-testid='user-message'] img",
   "#main-content [data-test-render-count] .font-claude-response img",
@@ -40,7 +21,6 @@ const DOM_SELECTOR_CLAUDE_CANVASES = [
   "#main-content [data-test-render-count] .font-claude-response canvas",
 ];
 
-// chatgpt
 const DOM_SELECTOR_CHATGPT_IMGS = ["#main section[data-turn] [data-message-author-role] img"];
 const DOM_SELECTOR_CHATGPT_CANVASES = ["#main section[data-turn] [data-message-author-role] canvas"];
 
@@ -65,26 +45,26 @@ export type CollectImages = {
   canvasToRelPath: CanvasToRelPath;
 };
 
-// skip the icon
 function isUiIcon(img: HTMLImageElement): boolean {
   if (img.getAttribute("aria-hidden") === "true") return true;
   if (img.closest("button")) return true;
+  if (img.naturalWidth > 0 && img.naturalWidth <= 24 && img.naturalHeight <= 24) return true;
 
+  // naturalWidth が 0 の場合（まだロードされていない等）はレイアウト情報で判定
   // https://developer.mozilla.org/ja/docs/Web/API/Element/getBoundingClientRect
   const rect = img.getBoundingClientRect();
   if (rect.width > 0 && rect.width <= 24 && rect.height <= 24) return true;
-  if (img.naturalWidth > 0 && img.naturalWidth <= 24 && img.naturalHeight <= 24) return true;
 
   return false;
 }
 
 function mimeToExtension(mime: string): string {
-  return mime_to_ext_map[mime] ?? EXTS.PNG;
+  return MIME_TO_EXT[mime] ?? "png";
 }
 
 function mimeFromDataUrl(dataUrl: string): string {
   const m = dataUrl.match(/^data:([^;,]+)/);
-  return m ? m[1] : MIMES.PNG;
+  return m ? m[1] : "image/png";
 }
 
 async function blobToDataUrl(blob: Blob): Promise<string> {
@@ -104,6 +84,11 @@ async function extractImageDataUrl(img: HTMLImageElement): Promise<string | null
   if (src.startsWith("blob:") || src.startsWith("https://") || src.startsWith("http://")) {
     try {
       const resp = await fetch(src, { mode: "cors" });
+
+      if (!resp.ok) {
+        console.error(`failed to fetching img: ${resp.status} ${resp.statusText}`, src);
+      }
+
       const blob = await resp.blob();
       return await blobToDataUrl(blob);
     } catch {
@@ -146,13 +131,15 @@ export async function collectImages(): Promise<CollectImages> {
   const seenSrcs = new Set<string>();
   for (const selector of imgSelectors) {
     const imgs = document.querySelectorAll<HTMLImageElement>(selector);
-    for (const img of Array.from(imgs)) {
+    for (const img of imgs) {
       if (isUiIcon(img)) continue;
 
       const src = img.getAttribute("src") || "";
       if (!src) continue;
       if (seenSrcs.has(src)) continue;
       seenSrcs.add(src);
+
+      console.log(`capture image: ${src}`);
 
       const dataUrl = await extractImageDataUrl(img);
       if (!dataUrl) {
@@ -172,10 +159,10 @@ export async function collectImages(): Promise<CollectImages> {
 
   for (const selector of canvasSelectors) {
     const canvases = document.querySelectorAll<HTMLCanvasElement>(selector);
-    for (const canvas of Array.from(canvases)) {
+    for (const canvas of canvases) {
       try {
-        const dataUrl = canvas.toDataURL(MIMES.PNG);
-        const filename = `${IMAGE_FILE_PREFIX}-${String(counter).padStart(3, "0")}.${EXTS.PNG}`;
+        const dataUrl = canvas.toDataURL("image/png");
+        const filename = `${IMAGE_FILE_PREFIX}-${String(counter).padStart(3, "0")}.png`;
         counter++;
         collected.push({ originalSrc: "", dataUrl, filename });
         canvasToRelPath.set(canvas, `${IMAGE_FILE_PATH}/${filename}`);
