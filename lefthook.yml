@@ -19,3 +19,7 @@ pre-commit:
       glob: "*.{js,ts,jsx,tsx,json}"
       run: npx biome check --write --unsafe {staged_files}
       stage_fixed: true  # 自動修正したファイルをgit addし直す
+    git-secrets:
+      run: git secrets --pre_commit_hook
+    gitleaks:
+      run: gitleaks protect --staged -v
