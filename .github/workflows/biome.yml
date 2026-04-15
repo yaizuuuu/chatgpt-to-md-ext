@@ -1,0 +1,35 @@
+name: biome
+
+on:
+  pull_request:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  biome:
+    name: biome
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write # reviewdogがPRコメントを投稿するため
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: biomejs/setup-biome@4c91541eaada48f67d7dbd7833600ce162b68f51 # v2.7.1
+        with:
+          version: latest
+      - uses: reviewdog/action-setup@d8a7baabd7f3e8544ee4dbde3ee41d0011c3a93f # v1.5.0
+        with:
+          reviewdog_version: latest
+      - run: |
+          biome check --reporter=json . 2>/dev/null \
+            | jq -c '.diagnostics[] | select(.location != null and .location.path != null and .location.span != null) | {message: .description, location: {path: .location.path.file, range: {start: {line: .location.span.start.line, column: .location.span.start.character}}}, severity: (if .severity == "error" then "ERROR" elif .severity == "warning" then "WARNING" else "INFO" end), source: {name: "biome"}}' \
+            | reviewdog -f=rdjsonl -reporter=github-pr-review -fail-level=any
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
