@@ -23,10 +23,12 @@ jobs:
           persist-credentials: false
       - uses: biomejs/setup-biome@4c91541eaada48f67d7dbd7833600ce162b68f51 # v2.7.1
         with:
-          version: latest
+          # renovate: datasource=github-releases depName=biomejs/biome extractVersion=^@biomejs/biome@(?<version>.*)$
+          version: "2.4.12"
       - uses: reviewdog/action-setup@d8a7baabd7f3e8544ee4dbde3ee41d0011c3a93f # v1.5.0
         with:
-          reviewdog_version: latest
+          # renovate: datasource=github-releases depName=reviewdog/reviewdog
+          reviewdog_version: "v0.21.0"
       - run: |
           biome check --reporter=json . 2>/dev/null \
             | jq -c '.diagnostics[] | select(.location != null and .location.path != null and .location.span != null) | {message: .description, location: {path: .location.path.file, range: {start: {line: .location.span.start.line, column: .location.span.start.character}}}, severity: (if .severity == "error" then "ERROR" elif .severity == "warning" then "WARNING" else "INFO" end), source: {name: "biome"}}' \
