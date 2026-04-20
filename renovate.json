@@ -14,7 +14,7 @@
   "packageRules": [
     {
       "groupName": "biome packages",
-      "matchManagers": ["npm"],
+      "matchDatasource": ["npm"],
       "matchPackageNames": ["@biomejs/biome"]
     }
   ]
