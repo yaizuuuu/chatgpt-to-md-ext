@@ -7,8 +7,8 @@
       "description": "Update biome.json",
       "managerFilePatterns": ["/^biome.json$/"],
       "matchStrings": ["https://biomejs.dev/schemas/(?<currentValue>.+?)/schema.json"],
-      "datasource": "npm",
-      "packageName": "@biomejs/biome"
+      "datasourceTemplate": "npm",
+      "packageNameTemplate": "@biomejs/biome"
     }
   ],
   "packageRules": [
