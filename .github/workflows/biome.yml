@@ -16,7 +16,6 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
-      pull-requests: write # reviewdogがPRコメントを投稿するため
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -25,13 +24,5 @@ jobs:
         with:
           # renovate: datasource=npm packageName=@biomejs/biome 
           version: "2.4.12"
-      - uses: reviewdog/action-setup@d8a7baabd7f3e8544ee4dbde3ee41d0011c3a93f # v1.5.0
-        with:
-          # renovate: datasource=github-releases packageName=reviewdog/reviewdog
-          reviewdog_version: "v0.21.0"
-      - run: |
-          biome check --reporter=json . 2>/dev/null \
-            | jq -c '.diagnostics[] | select(.location != null and .location.path != null and .location.span != null) | {message: .description, location: {path: .location.path.file, range: {start: {line: .location.span.start.line, column: .location.span.start.character}}}, severity: (if .severity == "error" then "ERROR" elif .severity == "warning" then "WARNING" else "INFO" end), source: {name: "biome"}}' \
-            | reviewdog -f=rdjsonl -reporter=github-pr-review -fail-level=any
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run Biome
+        run: biome ci .
