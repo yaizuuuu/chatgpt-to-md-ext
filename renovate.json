@@ -1,4 +1,21 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>yaizuuuu/my-renovate-config"]
+  "extends": ["github>yaizuuuu/my-renovate-config"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update biome.json",
+      "managerFilePatterns": ["/^biome.json$/"],
+      "matchStrings": ["https://biomejs.dev/schemas/(?<currentValue>.+?)/schema.json"],
+      "datasource": "npm",
+      "packageName": "@biomejs/biome"
+    }
+  ],
+  "packageRules": [
+    {
+      "groupName": "biome packages",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@biomejs/biome"]
+    }
+  ]
 }
