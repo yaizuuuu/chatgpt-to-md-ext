@@ -21,7 +21,7 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.13",
+    "@biomejs/biome": "2.4.14",
     "@types/chrome": "0.1.40",
     "@types/turndown": "5.0.6",
     "esbuild": "0.28.0",
