@@ -25,6 +25,6 @@
     "@types/chrome": "0.1.43",
     "@types/turndown": "5.0.6",
     "esbuild": "0.28.0",
-    "lefthook": "2.1.9"
+    "lefthook": "2.1.12"
   }
 }
